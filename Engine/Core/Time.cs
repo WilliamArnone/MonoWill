@@ -19,7 +19,7 @@ namespace MonoWill
         /// <summary>
         /// Scaled time between each frame. If you want unscaled version use <see cref="realTimeDelta"/>
         /// </summary>
-        public static TimeSpan TimeDelta => RealTimeDelta * TimeScale;
+        public static TimeSpan TimeDelta { get; private set; }
 
         /// <summary>
         /// Unscaled total duration of the game. If you want unscaled version use <see cref="ScaledTime"/>
@@ -41,7 +41,8 @@ namespace MonoWill
         {
             RealTime = gameTime.TotalGameTime;
             RealTimeDelta = gameTime.ElapsedGameTime;
-            ScaledTime += TimeDelta;
+            TimeDelta = RealTimeDelta * TimeScale;
+			ScaledTime += TimeDelta;
         }
     }
 }

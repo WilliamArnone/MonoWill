@@ -11,6 +11,7 @@ namespace MonoWill
     public class Object2D : WorldObject
 	{
 		public Vector2 size;
+		public Vector2 pivot;
 
 		Texture2D myModel;
 
@@ -21,6 +22,7 @@ namespace MonoWill
 		public Object2D(string path, bool addToWorldAfterCreation = true) : base(addToWorldAfterCreation)
 		{
 			myModel = Globals.Content.Load<Texture2D>(path);
+			pivot = new Vector2(0.5f, 0.5f);
 		}
 
 		public override void Update()
@@ -31,7 +33,7 @@ namespace MonoWill
 		{
 			if (myModel == null) return;
 
-			Globals.SpriteBatch.Draw(myModel, new Rectangle((int)position.X, (int)position.Y, (int)size.X, (int)size.Y), null, Color.White, 0, new Vector2(myModel.Bounds.Width/2, myModel.Bounds.Height/2), new SpriteEffects(), 0);
+			Globals.SpriteBatch.Draw(myModel, new Rectangle((int)position.X, (int)position.Y, (int)size.X, (int)size.Y), null, Color.White, 0, new Vector2(myModel.Bounds.Width*pivot.X, myModel.Bounds.Height*pivot.Y), new SpriteEffects(), 0);
 		}
 	}
 }

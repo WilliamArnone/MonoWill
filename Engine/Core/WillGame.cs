@@ -22,6 +22,7 @@ namespace MonoWill
         protected override void Initialize()
         {
             Time.Initialize();
+            Input.Initialize();
 
             base.Initialize();
         }
@@ -38,6 +39,7 @@ namespace MonoWill
                 Exit();
 
             Time.Update(gameTime);
+            Input.Update();
 
             world.Update();
 
