@@ -16,7 +16,6 @@ namespace MonoWill
             IsMouseVisible = true;
 
             this.world = world;
-            world.Initialize();
         }
 
         protected override void Initialize()

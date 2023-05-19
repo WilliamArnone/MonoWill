@@ -12,7 +12,7 @@ namespace MonoWill
         static List<WorldObject> worldObjects;
         static List<WorldObject> canvasObjects;
 
-        internal void Initialize()
+        public World()
         {
             worldObjects = new List<WorldObject>();
             canvasObjects = new List<WorldObject>();
@@ -22,23 +22,39 @@ namespace MonoWill
         /// Called each frame. Contains the game logic.
         /// </summary>
         public virtual void Update()
-        {
-            foreach (WorldObject obj in worldObjects)
-            {
-                if (obj.enabled)
-                {
-                    obj.Update();
-                }
-            }
+		{
+			foreach (WorldObject obj in worldObjects)
+			{
+				if (obj.enabled)
+				{
+					obj.ResumeCoroutines();
+				}
+			}
 
-            foreach (WorldObject obj in canvasObjects)
-            {
-                if (obj.enabled)
-                {
-                    obj.Update();
-                }
-            }
-        }
+			foreach (WorldObject obj in canvasObjects)
+			{
+				if (obj.enabled)
+				{
+					obj.ResumeCoroutines();
+				}
+			}
+
+			foreach (WorldObject obj in worldObjects)
+			{
+				if (obj.enabled)
+				{
+					obj.Update();
+				}
+			}
+
+			foreach (WorldObject obj in canvasObjects)
+			{
+				if (obj.enabled)
+				{
+					obj.Update();
+				}
+			}
+		}
 
         internal void Draw()
         {
@@ -59,15 +75,15 @@ namespace MonoWill
             }
         }
 
-        internal static int Add(WorldObject obj)
+        internal static void Add(WorldObject obj)
         {
-            worldObjects.Add(obj);
-            return worldObjects.Count - 1;
+            obj.worldIndex = worldObjects.Count;
+			worldObjects.Add(obj);
         }
 
-        internal static void Remove(WorldObject obj, int indexAssigned)
+        internal static void Remove(WorldObject obj)
         {
-            indexAssigned = Math.Min(indexAssigned, worldObjects.Count - 1);
+            int indexAssigned = Math.Min(obj.worldIndex, worldObjects.Count - 1);
             WorldObject temp;
 
             for (int i = indexAssigned; i >= 0; i--)
@@ -76,13 +92,15 @@ namespace MonoWill
                 if (temp == obj)
                 {
                     worldObjects.RemoveAt(i);
-                    return;
+                    break;
                 }
                 else
                 {
-                    temp.UpdateIndex(i);
+                    temp.worldIndex = i;
                 }
             }
+
+            obj.worldIndex = -1;
         }
 
         internal static int AddUI(WorldObject obj)
@@ -102,13 +120,15 @@ namespace MonoWill
                 if (temp == obj)
                 {
                     canvasObjects.RemoveAt(i);
-                    return;
+                    break;
                 }
                 else
                 {
-                    temp.UpdateIndex(i);
+                    temp.worldIndex = i;
                 }
             }
+
+            obj.worldIndex = -1;
         }
     }
 }

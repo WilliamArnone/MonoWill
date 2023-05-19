@@ -20,145 +20,23 @@ namespace MonoWill
 		public static event Action<Keys> OnKeyPress;
 		public static event Action<Keys> OnKeyUp;
 
-		#endregion
-
-		#region MOUSE
-
-		static MouseState _newMouse;
-		static MouseState _oldMouse;
-
-		static bool dragging;
-		static bool rightDrag;
-
-		static Vector2 mouseNewPos;
-		static Vector2 mouseOldPos;
-		static Vector2 mouseFirstPos;
-
-		static Vector2 newAdjustedPos;
-		static Vector2 systemCursorPos;
-		static Vector2 screenLoc;
-
-		static int GetMouseWheelChange()
+		static void InitKeyboard()
 		{
-			return _newMouse.ScrollWheelValue - _oldMouse.ScrollWheelValue;
+			//Nedded to avoid NullExcpetion on first UpdateKeyboard
+			_currentKeys = new Keys[0];
 		}
 
-		public static Vector2 GetMouseScreenPos()
+		static void UpdateKeyboard()
 		{
-			return mouseNewPos;
-		}
-
-		static bool IsLeftDown()
-		{
-			return _newMouse.LeftButton == ButtonState.Pressed
-				&& _oldMouse.LeftButton != ButtonState.Pressed
-				&& Screen.IsPointInside(mouseNewPos);
-		}
-
-		static bool IsLeftHold()
-		{
-			bool holding = false;
-
-			if (_newMouse.LeftButton == ButtonState.Pressed 
-				&& _oldMouse.LeftButton == ButtonState.Pressed 
-				&& Screen.IsPointInside(mouseNewPos))
-			{
-				holding = true;
-
-				Vector2 size = GameMath.SizeOfRectangle(mouseNewPos, mouseOldPos);
-				if (size.X > MinDistanceToConsiderDrag || size.Y > MinDistanceToConsiderDrag)
-				{
-					dragging = true;
-				}
-			}
-
-
-
-			return holding;
-		}
-
-		static bool IsLeftRelease()
-		{
-			if (_newMouse.LeftButton == ButtonState.Released && _oldMouse.LeftButton == ButtonState.Pressed)
-			{
-				dragging = false;
-				return true;
-			}
-
-			return false;
-		}
-
-		static bool IsRightDown()
-		{
-			return _newMouse.RightButton == ButtonState.Pressed 
-				&& _oldMouse.RightButton != ButtonState.Pressed 
-				&& Screen.IsPointInside(mouseNewPos);
-		}
-
-		static bool IsRightClickHold()
-		{
-			bool holding = false;
-
-			if (_newMouse.RightButton == ButtonState.Pressed 
-				&& _oldMouse.RightButton == ButtonState.Pressed 
-				&& Screen.IsPointInside(mouseNewPos))
-			{
-				holding = true;
-
-				Vector2 size = GameMath.SizeOfRectangle(mouseNewPos, mouseOldPos);
-				if (size.X > MinDistanceToConsiderDrag || size.Y > MinDistanceToConsiderDrag)
-				{
-					rightDrag = true;
-				}
-			}
-
-
-
-			return holding;
-		}
-
-		static bool IsRightClickRelease()
-		{
-			if (_newMouse.RightButton == ButtonState.Released && _oldMouse.RightButton == ButtonState.Pressed)
-			{
-				dragging = false;
-				return true;
-			}
-
-			return false;
-		}
-
-		#endregion
-
-		internal static void Initialize()
-		{
-			#region MOUSE
-
-			dragging = false;
-
-			MouseState mouse = Mouse.GetState();
-
-			Vector2 pos = new Vector2(mouse.Position.X, mouse.Position.Y);
-			mouseNewPos = pos;
-			mouseOldPos = pos;
-			mouseFirstPos = pos;
-
-			#endregion
-		}
-
-		internal static void Update()
-		{
-			#region KEYBOARD
-
 			List<Keys> prevKeys = new List<Keys>(_currentKeys);
 			_currentKeys = Keyboard.GetState().GetPressedKeys();
 
-			foreach(var key in _currentKeys)
+			foreach (var key in _currentKeys)
 			{
 				int index = -1;
 				for (int i = prevKeys.Count; i >= 0; i--)
 				{
-					if(key == prevKeys[i])
+					if (key == prevKeys[i])
 					{
 						index = i;
 						prevKeys.RemoveAt(index);
@@ -167,34 +45,159 @@ namespace MonoWill
 					}
 				}
 
-				if(index == 0)
+				if (index == 0)
 				{
 					OnKeyDown(key);
 				}
 			}
 
-			foreach(var key in prevKeys)
+			foreach (var key in prevKeys)
 			{
 				OnKeyUp(key);
 			}
+		}
 
-			#endregion
+		#endregion
 
-			#region MOUSE
+		#region MOUSE
 
-			_oldMouse = _newMouse;
-			_newMouse = _oldMouse = Mouse.GetState();
-			mouseNewPos = new Vector2(_newMouse.Position.X, _newMouse.Position.Y);
+		const float clickTimeBetweenInteraction = .10f;
 
-			if (_newMouse.LeftButton != _newMouse.LeftButton)
+		static MouseState _newMouse;
+		static MouseState _oldMouse;
+
+		static bool leftDrag;
+		static bool rightDrag;
+
+		internal static Vector2 mouseNewPos;
+		internal static Vector2 mouseOldPos;
+		internal static Vector2 mouseFirstPos;
+
+		static float mouseLeftStamp;
+		static float mouseRightStamp;
+
+		public static event Action OnMouseLeftClick;
+		public static event Action OnMouseRighClick;
+		public static event Action OnMouseLeftHold;
+		public static event Action OnMouseRightHold;
+		public static event Action OnMouseLeftStartDrag;
+		public static event Action OnMouseRightStartDrag;
+		public static event Action OnMouseLeftDrag;
+		public static event Action OnMouseRightDrag;
+		public static event Action OnMouseLeftDrop;
+		public static event Action OnMouseRightDrop;
+		public static event Action OnMouseLeftDown;
+		public static event Action OnMouseRightDown;
+		public static event Action OnMouseLeftUp;
+		public static event Action OnMouseRightUp;
+
+		static int GetMouseWheelChange()
+		{
+			return _newMouse.ScrollWheelValue - _oldMouse.ScrollWheelValue;
+		}
+
+		public static Vector2 GetMousePositino()
+		{
+			return mouseNewPos;
+		}
+
+		internal static void ResetLeftDrag()
+		{
+			if (leftDrag)
 			{
-				if (_newMouse.LeftButton == ButtonState.Pressed)
+				leftDrag = false;
+			}
+		}
+
+		static void InitMouse()
+		{
+			leftDrag = false;
+
+			MouseState mouse = Mouse.GetState();
+
+			Vector2 pos = new Vector2(mouse.Position.X, mouse.Position.Y);
+			mouseNewPos = pos;
+			mouseOldPos = pos;
+			mouseFirstPos = pos;
+		}
+
+		static void UpdateMouseLeft()
+		{
+			if (_newMouse.LeftButton == _oldMouse.LeftButton)
+			{
+				if (_newMouse.LeftButton == ButtonState.Released)
 				{
-					mouseFirstPos = mouseNewPos;
+					return;
+				}
+				else
+				{
+					if (GameMath.PointInRectangle(mouseNewPos, mouseOldPos,
+						new Vector2(MinDistanceToConsiderDrag, MinDistanceToConsiderDrag)))
+					{
+						OnMouseLeftHold?.Invoke();
+					}
+					else if (!leftDrag)
+					{
+						leftDrag = true;
+						OnMouseLeftStartDrag?.Invoke();
+					}
+					else
+					{
+						OnMouseLeftDrag?.Invoke();
+					}
 				}
 			}
+			else if (_newMouse.LeftButton == ButtonState.Pressed)
+			{
+				mouseLeftStamp = Time.RealTime;
+				OnMouseLeftDown?.Invoke();
+			}
+			else
+			{
+				OnMouseLeftUp?.Invoke();
 
-			#endregion
+				if (Time.RealTime-mouseLeftStamp <= clickTimeBetweenInteraction)
+				{
+					OnMouseLeftClick?.Invoke();
+				}
+
+				if(leftDrag)
+				{
+					leftDrag = false;
+					OnMouseLeftDrop?.Invoke();
+				}
+
+			}
+		}
+
+		static void UpdateMouse()
+		{
+			_oldMouse = _newMouse;
+			_newMouse = Mouse.GetState();
+			mouseNewPos = new Vector2(_newMouse.Position.X, _newMouse.Position.Y);
+
+			UpdateMouseLeft();
+		}
+
+		#endregion
+
+		internal static void Initialize()
+		{
+			InitKeyboard();
+
+			InitMouse();
+		}
+
+		internal static void Update()
+		{
+			UpdateKeyboard();
+
+			UpdateMouse();
+		}
+
+		internal static void Draw()
+		{
+
 		}
 	}
 }

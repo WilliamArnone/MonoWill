@@ -19,9 +19,13 @@ namespace MonoWill
 			return (vec2 - vec1).LengthSquared();
 		}
 
-		public static Vector2 SizeOfRectangle(Vector2 vert1, Vector2 vert2)
+		public static bool PointInRectangle(Vector2 point, Vector2 center, Vector2 size)
 		{
-			return new Vector2(Math.Abs(vert2.X - vert1.X), Math.Abs(vert2.Y - vert1.Y));
+			Vector2 halfSize = size / 2; ;
+			return point.X >= center.X - halfSize.X
+				&& point.X <= center.X + halfSize.X
+				&& point.Y >= center.Y - halfSize.Y
+				&& point.Y >= center.Y + halfSize.Y;
 		}
 	}
 }

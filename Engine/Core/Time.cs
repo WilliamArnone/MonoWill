@@ -8,39 +8,40 @@ using System.Threading.Tasks;
 
 namespace MonoWill
 {
-    class Time
+    public static class Time
     {
         public static float TimeScale { get; set; }
 
         /// <summary>
         /// Unscaled time between each frame.
         /// </summary>
-        public static TimeSpan RealTimeDelta { get; private set; }
+        public static float RealTimeDelta { get; private set; }
         /// <summary>
         /// Scaled time between each frame. If you want unscaled version use <see cref="realTimeDelta"/>
         /// </summary>
-        public static TimeSpan TimeDelta { get; private set; }
+        public static float TimeDelta { get; private set; }
 
         /// <summary>
-        /// Unscaled total duration of the game. If you want unscaled version use <see cref="ScaledTime"/>
+        /// Unscaled total duration of the game. If you want the scaled version use <see cref="ScaledTime"/>
         /// </summary>
-        public static TimeSpan RealTime { get; private set; }
+        public static float RealTime { get; private set; }
         /// <summary>
         /// Scaled total duration of game.
         /// </summary>
-        public static TimeSpan ScaledTime { get; private set; }
+        public static float ScaledTime { get; private set; }
 
         internal static void Initialize()
         {
-            RealTime = TimeSpan.Zero;
-            RealTimeDelta = TimeSpan.Zero;
-            ScaledTime = TimeSpan.Zero;
-        }
+            RealTime = 0f;
+            RealTimeDelta = 0f;
+            ScaledTime = 0f;
+            TimeScale = 1f;
+		}
 
         internal static void Update(GameTime gameTime)
         {
-            RealTime = gameTime.TotalGameTime;
-            RealTimeDelta = gameTime.ElapsedGameTime;
+            RealTime = (float) gameTime.TotalGameTime.TotalSeconds;
+            RealTimeDelta = (float) gameTime.ElapsedGameTime.TotalSeconds;
             TimeDelta = RealTimeDelta * TimeScale;
 			ScaledTime += TimeDelta;
         }

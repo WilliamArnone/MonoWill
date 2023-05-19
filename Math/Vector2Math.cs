@@ -15,8 +15,8 @@ namespace MonoWill
 		public static float DistanceSqrFrom(this Vector2 vec, Vector2 other)
 			=> Vector2.DistanceSquared(vec, other);
 
-		public static Vector2 SizeOfRectangle(Vector2 vec, Vector2 other)
-			=> GameMath.SizeOfRectangle(vec, other);
+		//public static Vector2 SizeOfRectangle(Vector2 vec, Vector2 other)
+		//	=> GameMath.SizeOfRectangle(vec, other);
 		
 
 		public static float AngleToward(this Vector2 v, Vector2 other)
