@@ -14,12 +14,12 @@ namespace MonoWill.UI
 
 		public override void AddSelfToWorld()
 		{
-			worldIndex = World.AddUI(this);
+			worldIndex = WillGame.world.AddUI(this);
 		}
 
 		public override void RemoveFromWorld()
 		{
-			World.RemoveUI(this, worldIndex);
+			WillGame.world.RemoveUI(this, worldIndex);
 			worldIndex = -1;
 		}
 	}

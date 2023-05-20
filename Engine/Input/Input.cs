@@ -23,7 +23,7 @@ namespace MonoWill
 		public static event Action<Keys> OnKeyPress;
 		public static event Action<Keys> OnKeyUp;
 
-		public static bool GetKeyDown(Keys key) => _keyPressed[(int)key];
+		public static bool IsKeyDown(Keys key) => _keyPressed[(int)key];
 
 		static void InitKeyboard()
 		{
@@ -194,9 +194,9 @@ namespace MonoWill
 				{
 					OnMouseRightHold?.Invoke();
 				}
-				else if (!leftDrag)
+				else if (!rightDrag)
 				{
-					leftDrag = true;
+					rightDrag = true;
 					OnMouseRightStartDrag?.Invoke();
 				}
 				else

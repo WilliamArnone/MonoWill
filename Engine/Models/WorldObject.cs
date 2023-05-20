@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Linq;
@@ -10,9 +11,13 @@ using System.Threading.Tasks;
 
 namespace MonoWill
 {
-    public abstract class WorldObject
+    public abstract class WorldObject : MonoWillBase
 	{
 		protected internal int worldIndex = -1;
+
+		public bool IsInGame => worldIndex >= 0;
+
+		#region ATTRIBUTES
 
 		WorldObject _parent;
 		public WorldObject parent
@@ -29,23 +34,12 @@ namespace MonoWill
 			}
 		}
 
-		List<WorldObject> children = new List<WorldObject>();
-		
-		List<Behaviour> behaviours = new List<Behaviour>();
-
-		List<Coroutine> activeCoroutines = new List<Coroutine>();
-		List<Coroutine> sleepCoroutines = new List<Coroutine>();
-
-		#region ATTRIBUTES
-
 		public Vector2 position;
 
 		public bool enabled = true;
 		public bool visible = true;
 
 		#endregion
-
-		public bool IsInGame => worldIndex >= 0;
 
 		/// <summary>
 		/// World Object constructor
@@ -63,29 +57,32 @@ namespace MonoWill
 		{
 			if (IsInGame) return;
 
-			World.Add(this);
+			WillGame.world.Add(this);
 		}
 
 		public virtual void RemoveFromWorld()
 		{
 			if (!IsInGame) return;
 
-			World.Remove(this);
+			WillGame.world.Remove(this);
 		}
 
 		#endregion
 
 		#region BEHAVIOUR
+		
+		List<Behaviour> behaviours = new List<Behaviour>();
 
 		public void AddBehaviour(Behaviour behaviour)
 		{
 			if(behaviour.worldObject != null)
 			{
-				throw new InvalidOperationException("Trying to add a behaviour aready attached to an object");
+				behaviour.worldObject.RemoveBehaviour(behaviour);
 			}
 
 			behaviour.worldObject = this;
 			behaviours.Add(behaviour);
+			behaviour.OnAttach();
 		}
 
 		public void RemoveBehaviour(Behaviour behaviour)
@@ -97,6 +94,7 @@ namespace MonoWill
 
 			behaviour.worldObject = null;
 			behaviours.Remove(behaviour);
+			behaviour.OnDetach();
 		}
 
 		public T GetBehaviour<T>() where T : Behaviour
@@ -149,15 +147,18 @@ namespace MonoWill
 
 		#region CHILDREN
 
+		List<WorldObject> children = new List<WorldObject>();
+		public List<WorldObject> Children => new List<WorldObject>(children);
+
 		public void AddChildren(WorldObject obj)
 		{
 			if(obj.parent != null)
 			{
-				obj.parent.children.Remove(obj);
+				obj.parent.RemoveChildren(obj);
 			}
 			else if(obj.worldIndex != -1)
 			{
-				World.Remove(obj);
+				WillGame.world.Remove(obj);
 			}
 			children.Add(obj);
 		}
@@ -172,6 +173,9 @@ namespace MonoWill
 		#endregion
 
 		#region COROUTINES
+
+		List<Coroutine> activeCoroutines = new List<Coroutine>();
+		List<Coroutine> sleepCoroutines = new List<Coroutine>();
 
 		public Coroutine StartCoroutine(IEnumerator routine)
 		{
@@ -226,6 +230,11 @@ namespace MonoWill
 
 		#endregion
 
+		#region VIRTUALS
+
+		public virtual void OnEnterWorld() { }
+		public virtual void OnLeaveWorld() { }
+
 		public virtual void Update()
 		{
 			foreach (var behaviour in behaviours)
@@ -243,5 +252,7 @@ namespace MonoWill
 				if(child.visible)
 					child.Draw();
 		}
+
+		#endregion
 	}
 }

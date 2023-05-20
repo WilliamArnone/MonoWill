@@ -16,6 +16,7 @@ namespace MonoWill
         /// Unscaled time between each frame.
         /// </summary>
         public static float RealTimeDelta { get; private set; }
+
         /// <summary>
         /// Scaled time between each frame. If you want unscaled version use <see cref="realTimeDelta"/>
         /// </summary>
@@ -25,6 +26,7 @@ namespace MonoWill
         /// Unscaled total duration of the game. If you want the scaled version use <see cref="ScaledTime"/>
         /// </summary>
         public static float RealTime { get; private set; }
+
         /// <summary>
         /// Scaled total duration of game.
         /// </summary>

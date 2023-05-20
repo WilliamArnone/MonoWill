@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Content;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -8,9 +9,10 @@ using System.Threading.Tasks;
 
 namespace MonoWill
 {
-    class Globals
-    {
-        public static ContentManager Content { get; internal set; }
+    public class Globals
+	{
+		public static GameWindow Window { get; internal set; }
+		public static ContentManager Content { get; internal set; }
         public static SpriteBatch SpriteBatch { get; internal set; }
     }
 }

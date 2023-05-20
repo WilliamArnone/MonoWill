@@ -1,13 +1,20 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace MonoWill
 {
     public class WillGame : Game
     {
-        private GraphicsDeviceManager _graphics;
-        private World world;
+        internal static World world { get; private set; }
+
+        static Queue<World> worldQueue = new Queue<World>();
+        
+        GraphicsDeviceManager _graphics;
 
         public WillGame(World world)
         {
@@ -15,16 +22,37 @@ namespace MonoWill
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
 
-            this.world = world;
+            WillGame.world = world;
         }
 
-        protected override void Initialize()
+        public static void LoadNewWorld(World world, bool preserveCurrentWorld)
         {
+            if (preserveCurrentWorld)
+            {
+                worldQueue.Enqueue(WillGame.world);
+            }
+            WillGame.world = world;
+            world.OnCreation();
+        }
+
+        public static void BackToPreviusWorld()
+        {
+            if(worldQueue.Count == 0) { return; }
+            world = worldQueue.Dequeue();
+        }
+
+		#region INITIALIZATION
+
+		protected override void Initialize()
+        {
+			Globals.Window = Window;
+            Screen.Initialize(_graphics);
             Time.Initialize();
             Input.Initialize();
 
-            base.Initialize();
-        }
+			base.Initialize();
+			world.OnCreation();
+		}
 
         protected override void LoadContent()
         {
@@ -32,7 +60,11 @@ namespace MonoWill
             Globals.SpriteBatch = new SpriteBatch(GraphicsDevice);
         }
 
-        protected override void Update(GameTime gameTime)
+		#endregion
+
+		#region GAME_LOOP
+
+		protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
@@ -55,5 +87,7 @@ namespace MonoWill
             Globals.SpriteBatch.End();
             base.Draw(gameTime);
         }
-    }
+
+		#endregion
+	}
 }
