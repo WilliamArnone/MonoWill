@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonoWill
+namespace MonoWill.Mathematics
 {
 	public static class GameMath
 	{
@@ -25,7 +25,7 @@ namespace MonoWill
 			return point.X >= center.X - halfSize.X
 				&& point.X <= center.X + halfSize.X
 				&& point.Y >= center.Y - halfSize.Y
-				&& point.Y >= center.Y + halfSize.Y;
+				&& point.Y <= center.Y + halfSize.Y;
 		}
 	}
 }

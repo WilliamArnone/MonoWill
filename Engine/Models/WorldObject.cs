@@ -57,8 +57,6 @@ namespace MonoWill
 				AddSelfToWorld();
 		}
 
-		#region INTERNAL_USE
-
 		#region WORLD
 
 		public virtual void AddSelfToWorld()
@@ -77,15 +75,7 @@ namespace MonoWill
 
 		#endregion
 
-		#endregion
-
-		#region TYPES_AND_BEHAVIOURS
-
-		public bool GetType<T>(out T obj) where T : WorldObject
-		{
-			obj = this as T;
-			return obj != null;
-		}
+		#region BEHAVIOUR
 
 		public void AddBehaviour(Behaviour behaviour)
 		{
@@ -155,16 +145,28 @@ namespace MonoWill
 			return behaviours.ToArray();
 		}
 
+		#endregion
+
+		#region CHILDREN
+
 		public void AddChildren(WorldObject obj)
 		{
 			if(obj.parent != null)
 			{
-
+				obj.parent.children.Remove(obj);
 			}
 			else if(obj.worldIndex != -1)
 			{
 				World.Remove(obj);
 			}
+			children.Add(obj);
+		}
+
+		public void RemoveChildren(WorldObject obj) 
+		{
+			if(obj.parent != this) { return; }
+
+			children.Remove(obj);
 		}
 
 		#endregion

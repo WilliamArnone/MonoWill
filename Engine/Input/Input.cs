@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using MonoWill.Mathematics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,46 +16,53 @@ namespace MonoWill
 
 		#region KEYBOARD
 
-		static Keys[] _currentKeys;
+		static bool[] _keyPressed;
+		static List<Keys> _currentKeys;
 
 		public static event Action<Keys> OnKeyDown;
 		public static event Action<Keys> OnKeyPress;
 		public static event Action<Keys> OnKeyUp;
 
+		public static bool GetKeyDown(Keys key) => _keyPressed[(int)key];
+
 		static void InitKeyboard()
 		{
 			//Nedded to avoid NullExcpetion on first UpdateKeyboard
-			_currentKeys = new Keys[0];
+			_currentKeys = new List<Keys>();
+			_keyPressed = new bool[Enum.GetValues(typeof(Keys)).Length];
 		}
 
 		static void UpdateKeyboard()
 		{
-			List<Keys> prevKeys = new List<Keys>(_currentKeys);
-			_currentKeys = Keyboard.GetState().GetPressedKeys();
+			_currentKeys.AddRange(Keyboard.GetState().GetPressedKeys());
 
-			foreach (var key in _currentKeys)
+			for (int i = 0; i < _keyPressed.Length; i++)
 			{
-				int index = -1;
-				for (int i = prevKeys.Count; i >= 0; i--)
+				bool isPressed = false;
+				for (int j = _currentKeys.Count-1; j >= 0; j--)
 				{
-					if (key == prevKeys[i])
+					if ((int)_currentKeys[j] == i)
 					{
-						index = i;
-						prevKeys.RemoveAt(index);
-						OnKeyPress(key);
+						_currentKeys.RemoveAt(j);
+						isPressed = true;
 						break;
 					}
 				}
 
-				if (index == 0)
+				if (_keyPressed[i] && !isPressed)
 				{
-					OnKeyDown(key);
+					OnKeyUp?.Invoke((Keys)i);
 				}
-			}
+				else if (!_keyPressed[i] && isPressed)
+				{
+					OnKeyDown?.Invoke((Keys)i);
+				}
+				else if (_keyPressed[i] && isPressed)
+				{
+					OnKeyPress?.Invoke((Keys)i);
+				}
 
-			foreach (var key in prevKeys)
-			{
-				OnKeyUp(key);
+				_keyPressed[i] = isPressed;
 			}
 		}
 
@@ -77,7 +86,7 @@ namespace MonoWill
 		static float mouseRightStamp;
 
 		public static event Action OnMouseLeftClick;
-		public static event Action OnMouseRighClick;
+		public static event Action OnMouseRightClick;
 		public static event Action OnMouseLeftHold;
 		public static event Action OnMouseRightHold;
 		public static event Action OnMouseLeftStartDrag;
@@ -123,50 +132,99 @@ namespace MonoWill
 
 		static void UpdateMouseLeft()
 		{
-			if (_newMouse.LeftButton == _oldMouse.LeftButton)
+			if (_newMouse.LeftButton == ButtonState.Released
+				&& _oldMouse.LeftButton == ButtonState.Released)
 			{
-				if (_newMouse.LeftButton == ButtonState.Released)
+				return;
+			}
+			else if (_newMouse.LeftButton == ButtonState.Pressed
+				&& _oldMouse.LeftButton == ButtonState.Pressed)
+			{
+				if (GameMath.PointInRectangle(mouseNewPos, mouseOldPos,
+					new Vector2(MinDistanceToConsiderDrag, MinDistanceToConsiderDrag)))
 				{
-					return;
+					OnMouseLeftHold?.Invoke();
+				}
+				else if (!leftDrag)
+				{
+					leftDrag = true;
+					OnMouseLeftStartDrag?.Invoke();
 				}
 				else
 				{
-					if (GameMath.PointInRectangle(mouseNewPos, mouseOldPos,
-						new Vector2(MinDistanceToConsiderDrag, MinDistanceToConsiderDrag)))
-					{
-						OnMouseLeftHold?.Invoke();
-					}
-					else if (!leftDrag)
-					{
-						leftDrag = true;
-						OnMouseLeftStartDrag?.Invoke();
-					}
-					else
-					{
-						OnMouseLeftDrag?.Invoke();
-					}
+					OnMouseLeftDrag?.Invoke();
 				}
 			}
-			else if (_newMouse.LeftButton == ButtonState.Pressed)
+			else if (_newMouse.LeftButton == ButtonState.Pressed
+				&& _oldMouse.LeftButton == ButtonState.Released)
 			{
 				mouseLeftStamp = Time.RealTime;
 				OnMouseLeftDown?.Invoke();
 			}
-			else
+			else if (_newMouse.LeftButton == ButtonState.Released
+				&& _oldMouse.LeftButton == ButtonState.Pressed)
 			{
 				OnMouseLeftUp?.Invoke();
 
-				if (Time.RealTime-mouseLeftStamp <= clickTimeBetweenInteraction)
+				if (Time.RealTime - mouseLeftStamp <= clickTimeBetweenInteraction)
 				{
 					OnMouseLeftClick?.Invoke();
 				}
 
-				if(leftDrag)
+				if (leftDrag)
 				{
 					leftDrag = false;
 					OnMouseLeftDrop?.Invoke();
 				}
+			}
+		}
 
+		static void UpdateMouseRight()
+		{
+			if (_newMouse.RightButton == ButtonState.Released
+				&& _oldMouse.RightButton == ButtonState.Released)
+			{
+				return;
+			}
+			else if (_newMouse.RightButton == ButtonState.Pressed
+				&& _oldMouse.RightButton == ButtonState.Pressed)
+			{
+				if (GameMath.PointInRectangle(mouseNewPos, mouseOldPos,
+					new Vector2(MinDistanceToConsiderDrag, MinDistanceToConsiderDrag)))
+				{
+					OnMouseRightHold?.Invoke();
+				}
+				else if (!leftDrag)
+				{
+					leftDrag = true;
+					OnMouseRightStartDrag?.Invoke();
+				}
+				else
+				{
+					OnMouseRightDrag?.Invoke();
+				}
+			}
+			else if (_newMouse.RightButton == ButtonState.Pressed
+				&& _oldMouse.RightButton == ButtonState.Released)
+			{
+				mouseRightStamp = Time.RealTime;
+				OnMouseRightDown?.Invoke();
+			}
+			else if (_newMouse.RightButton == ButtonState.Released
+				&& _oldMouse.RightButton == ButtonState.Pressed)
+			{
+				OnMouseRightUp?.Invoke();
+
+				if (Time.RealTime - mouseRightStamp <= clickTimeBetweenInteraction)
+				{
+					OnMouseRightClick?.Invoke();
+				}
+
+				if (leftDrag)
+				{
+					rightDrag = false;
+					OnMouseRightDrop?.Invoke();
+				}
 			}
 		}
 
@@ -174,9 +232,11 @@ namespace MonoWill
 		{
 			_oldMouse = _newMouse;
 			_newMouse = Mouse.GetState();
+			mouseOldPos = mouseNewPos;
 			mouseNewPos = new Vector2(_newMouse.Position.X, _newMouse.Position.Y);
 
 			UpdateMouseLeft();
+			UpdateMouseRight();
 		}
 
 		#endregion
