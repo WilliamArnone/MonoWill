@@ -11,10 +11,12 @@ using System.Threading.Tasks;
 
 namespace MonoWill
 {
-    public abstract class WorldObject : MonoWillBase
+    public abstract class WorldObject : Instantiator
 	{
 		protected internal int worldIndex = -1;
 
+		public bool IsInWorld { get; internal set; }
+		public bool IsInCanvas => IsInGame && !IsInWorld;
 		public bool IsInGame => worldIndex >= 0;
 
 		#region ATTRIBUTES
@@ -38,34 +40,6 @@ namespace MonoWill
 
 		public bool enabled = true;
 		public bool visible = true;
-
-		#endregion
-
-		/// <summary>
-		/// World Object constructor
-		/// </summary>
-		/// <param name="addToWorldAfterCreation">If set to false it won't be added to the game objects.</param>
-		public WorldObject(bool addToWorldAfterCreation = true)
-		{
-			if (addToWorldAfterCreation)
-				AddSelfToWorld();
-		}
-
-		#region WORLD
-
-		public virtual void AddSelfToWorld()
-		{
-			if (IsInGame) return;
-
-			WillGame.world.Add(this);
-		}
-
-		public virtual void RemoveFromWorld()
-		{
-			if (!IsInGame) return;
-
-			WillGame.world.Remove(this);
-		}
 
 		#endregion
 

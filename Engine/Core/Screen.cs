@@ -94,6 +94,7 @@ namespace MonoWill
 			{
 				CanvasWidth = (int)value.X;
 				CanvasHeight = (int)value.Y;
+				_graphics.ApplyChanges();
 			}
 		}
 

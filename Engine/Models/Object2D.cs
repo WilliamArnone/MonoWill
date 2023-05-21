@@ -19,7 +19,7 @@ namespace MonoWill
 		/// Object 2D constructor
 		/// </summary>
 		/// <param name="addToWorldAfterCreation">If set to false it won't be added to the game objects.</param>
-		public Object2D(string path, bool addToWorldAfterCreation = true) : base(addToWorldAfterCreation)
+		public Object2D(string path) : base()
 		{
 			myModel = Globals.Content.Load<Texture2D>(path);
 			pivot = new Vector2(0.5f, 0.5f);

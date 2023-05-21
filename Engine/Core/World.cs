@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MonoWill
 {
-    public abstract class World : MonoWillBase
+    public abstract class World : Instantiator
 	{
         List<WorldObject> worldObjects;
         List<WorldObject> canvasObjects;
@@ -81,12 +81,19 @@ namespace MonoWill
 
 		internal void Add(WorldObject obj)
         {
+			if(obj.IsInGame) { return; }
+			if(obj.parent!=null) { obj.parent.RemoveChildren(obj); }
+
             obj.worldIndex = worldObjects.Count;
+			obj.IsInWorld = true;
 			worldObjects.Add(obj);
-        }
+			obj.OnEnterWorld();
+		}
 
         internal void Remove(WorldObject obj)
         {
+			if(!obj.IsInWorld) { return; }
+
             int indexAssigned = Math.Min(obj.worldIndex, worldObjects.Count - 1);
             WorldObject temp;
 
@@ -105,16 +112,24 @@ namespace MonoWill
             }
 
             obj.worldIndex = -1;
-        }
+			obj.OnLeaveWorld();
+		}
 
-        internal int AddUI(WorldObject obj)
-        {
-            canvasObjects.Add(obj);
-            return canvasObjects.Count - 1;
-        }
+        internal void AddUI(WorldObject obj)
+		{
+			if (obj.IsInGame) { return; }
+			if (obj.parent != null) { obj.parent.RemoveChildren(obj); }
+
+			obj.worldIndex = worldObjects.Count;
+			obj.IsInWorld = false;
+			canvasObjects.Add(obj);
+			obj.OnEnterWorld();
+		}
 
         internal void RemoveUI(WorldObject obj, int indexAssigned)
         {
+			if(!obj.IsInCanvas) { return; }
+
             indexAssigned = Math.Min(indexAssigned, canvasObjects.Count - 1);
             WorldObject temp;
 
@@ -139,7 +154,7 @@ namespace MonoWill
 
 		#region WORLDOBJECT_SEARCH
 
-		internal T FindWorldObject<T>() where T : WorldObject
+		internal new T FindWorldObject<T>() where T : WorldObject
 		{
 			T returnObj;
 
@@ -175,7 +190,7 @@ namespace MonoWill
 			return null;
 		}
 
-		internal List<T> FindWorldObjects<T>() where T : WorldObject
+		internal new List<T> FindWorldObjects<T>() where T : WorldObject
 		{
             List<T> objs = new List<T>();
 
@@ -203,15 +218,67 @@ namespace MonoWill
 			return objs;
 		}
 
-		//public WorldObject FindObjectWithBehaviour<T>() where T : Behaviour
-		//{
+		public new T FindBehaviour<T>() where T : Behaviour
+		{
+			T returnObj;
 
-		//}
+			foreach (WorldObject obj in worldObjects)
+			{
+				returnObj = SearchForBehaviour<T>(obj);
+				if (returnObj != null)
+					return returnObj;
+			}
+			foreach (WorldObject obj in canvasObjects)
+			{
+				returnObj = SearchForBehaviour<T>(obj);
+				if (returnObj != null)
+					return returnObj;
+			}
 
-		//public List<WorldObject> FindObjectsWithBehaviour<T>() where T : Behaviour
-		//{
+			return null;
+		}
 
-		//}
+		T SearchForBehaviour<T>(WorldObject worldObject) where T : Behaviour
+		{
+			if (worldObject.TryGetBehaviour(out T behav))
+				return behav;
+
+			foreach (var child in worldObject.Children)
+			{
+				T returnObj = SearchForBehaviour<T>(child);
+				if (returnObj != null)
+					return returnObj;
+			}
+
+			return null;
+		}
+
+		public new List<T> FindAllBehaviours<T>() where T : Behaviour
+		{
+			List<T> objs = new List<T>();
+
+			foreach (WorldObject obj in worldObjects)
+				objs.AddRange(SearchForBehavious<T>(obj));
+			foreach (WorldObject obj in canvasObjects)
+				objs.AddRange(SearchForBehavious<T>(obj));
+
+			return objs;
+		}
+
+		List<T> SearchForBehavious<T>(WorldObject worldObject) where T : Behaviour
+		{
+			List<T> objs = new List<T>();
+
+			if (worldObject.TryGetBehaviour(out T returnObj))
+				objs.Add(returnObj);
+
+			foreach (var child in worldObject.Children)
+			{
+				objs.AddRange(SearchForBehavious<T>(child));
+			}
+
+			return objs;
+		}
 
 		#endregion
 	}

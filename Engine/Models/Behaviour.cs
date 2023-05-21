@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MonoWill
 {
-	public abstract class Behaviour : MonoWillBase
+	public abstract class Behaviour : Instantiator
 	{
 		public WorldObject worldObject { get; internal set; }
 
