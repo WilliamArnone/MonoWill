@@ -39,8 +39,6 @@ namespace MonoWill
 			}
 		}
 
-		public static Matrix transformationMatrix { get; internal set; }
-
 		#region DRAW
 
 		internal static void Begin()
@@ -48,10 +46,6 @@ namespace MonoWill
 			SetupFullViewport();
 			GraphicsDevice.Clear(BackgroundColor);
 			SetupVirtualViewport();
-
-			transformationMatrix =
-				Matrix.CreateTranslation(-_viewport.X, -_viewport.Y, 0)
-				*Matrix.CreateScale(1f / _viewport.Width / Width, 1f / _viewport.Height / Height , 1f);
 
 			//GraphicsDevice.Clear(Color.CornflowerBlue);
 			if (UsePixelart)

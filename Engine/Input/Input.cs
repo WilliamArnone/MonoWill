@@ -126,7 +126,11 @@ namespace MonoWill
 			
 
 			Vector2 pos = new Vector2(mouse.Position.X, mouse.Position.Y);
-			pos = Vector2.Transform(pos, Matrix.Invert(Graphic.transformationMatrix));
+			pos = new Vector2(pos.X, pos.Y);
+			//pos.X -= Graphic.GraphicsDevice.Viewport.X;
+			//pos.Y -= Graphic.GraphicsDevice.Viewport.Y;
+			//pos.X /= Window.Width / Screen.Width;
+			//pos.Y /= Window.Height / Screen.Height;
 
 			mouseNewPos = pos;
 			mouseOldPos = pos;
@@ -237,6 +241,11 @@ namespace MonoWill
 			_newMouse = Mouse.GetState();
 			mouseOldPos = mouseNewPos;
 			mouseNewPos = new Vector2(_newMouse.Position.X, _newMouse.Position.Y);
+			mouseNewPos.X -= Graphic.GraphicsDevice.Viewport.X;
+			mouseNewPos.Y -= Graphic.GraphicsDevice.Viewport.Y;
+			mouseNewPos.X /= (float)Graphic.GraphicsDevice.Viewport.Width / Graphic.Width;
+			mouseNewPos.Y /= (float)Graphic.GraphicsDevice.Viewport.Height / Graphic.Height;
+
 
 			UpdateMouseLeft();
 			UpdateMouseRight();
