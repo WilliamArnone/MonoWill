@@ -10,11 +10,10 @@ namespace MonoWill
 {
     public class WillGame : Game
     {
-        internal static World world { get; private set; }
+        internal static World World { get; private set; }
 
-        static Queue<World> worldQueue = new Queue<World>();
-        
-        GraphicsDeviceManager _graphics;
+        static readonly Queue<World> worldQueue = new();
+		readonly GraphicsDeviceManager _graphics;
 
         public WillGame(World world)
         {
@@ -22,42 +21,41 @@ namespace MonoWill
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
 
-            WillGame.world = world;
+            World = world;
         }
 
         public static void LoadNewWorld(World world, bool preserveCurrentWorld)
         {
             if (preserveCurrentWorld)
             {
-                worldQueue.Enqueue(WillGame.world);
+                worldQueue.Enqueue(WillGame.World);
             }
-            WillGame.world = world;
+            WillGame.World = world;
             world.OnCreation();
         }
 
         public static void BackToPreviusWorld()
         {
             if(worldQueue.Count == 0) { return; }
-            world = worldQueue.Dequeue();
+            World = worldQueue.Dequeue();
         }
 
 		#region INITIALIZATION
 
 		protected override void Initialize()
         {
-			Globals.Window = Window;
-            Screen.Initialize(_graphics);
+            MonoWill.Window.Initialize(_graphics, Window);
             Time.Initialize();
             Input.Initialize();
 
 			base.Initialize();
-			world.OnCreation();
+			World.OnCreation();
 		}
 
         protected override void LoadContent()
         {
-            Globals.Content = Content;
-            Globals.SpriteBatch = new SpriteBatch(GraphicsDevice);
+            MonoWill.Content.Initialize(Content);
+			Graphic.Initialize(GraphicsDevice, new SpriteBatch(GraphicsDevice));
         }
 
 		#endregion
@@ -72,19 +70,18 @@ namespace MonoWill
             Time.Update(gameTime);
             Input.Update();
 
-            world.Update();
+            World.Update();
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            Globals.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+            Graphic.Begin();
 
-            world.Draw();
+            World.Draw();
 
-            Globals.SpriteBatch.End();
+            Graphic.End();
             base.Draw(gameTime);
         }
 

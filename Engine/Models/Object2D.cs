@@ -21,7 +21,8 @@ namespace MonoWill
 		/// <param name="addToWorldAfterCreation">If set to false it won't be added to the game objects.</param>
 		public Object2D(string path) : base()
 		{
-			myModel = Globals.Content.Load<Texture2D>(path);
+			myModel = Content.Manager.Load<Texture2D>(path);
+			size = new Vector2(myModel.Width, myModel.Height);
 			pivot = new Vector2(0.5f, 0.5f);
 		}
 
@@ -33,7 +34,7 @@ namespace MonoWill
 		{
 			if (myModel == null) return;
 
-			Globals.SpriteBatch.Draw(myModel, new Rectangle((int)position.X, (int)position.Y, (int)size.X, (int)size.Y), null, Color.White, 0, new Vector2(myModel.Bounds.Width*pivot.X, myModel.Bounds.Height*pivot.Y), new SpriteEffects(), 0);
+			Graphic.SpriteBatch.Draw(myModel, new Rectangle((int)position.X, (int)position.Y, (int)size.X, (int)size.Y), null, Color.White, 0, new Vector2(myModel.Bounds.Width*pivot.X, myModel.Bounds.Height*pivot.Y), new SpriteEffects(), 0);
 		}
 	}
 }

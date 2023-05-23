@@ -120,7 +120,7 @@ namespace MonoWill
 			if (obj.IsInGame) { return; }
 			if (obj.parent != null) { obj.parent.RemoveChildren(obj); }
 
-			obj.worldIndex = worldObjects.Count;
+			obj.worldIndex = canvasObjects.Count;
 			obj.IsInWorld = false;
 			canvasObjects.Add(obj);
 			obj.OnEnterWorld();

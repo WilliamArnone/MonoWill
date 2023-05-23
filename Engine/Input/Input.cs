@@ -27,7 +27,6 @@ namespace MonoWill
 
 		static void InitKeyboard()
 		{
-			//Nedded to avoid NullExcpetion on first UpdateKeyboard
 			_currentKeys = new List<Keys>();
 			_keyPressed = new bool[Enum.GetValues(typeof(Keys)).Length];
 		}
@@ -64,6 +63,7 @@ namespace MonoWill
 
 				_keyPressed[i] = isPressed;
 			}
+			_currentKeys.Clear();
 		}
 
 		#endregion
@@ -105,7 +105,7 @@ namespace MonoWill
 			return _newMouse.ScrollWheelValue - _oldMouse.ScrollWheelValue;
 		}
 
-		public static Vector2 GetMousePositino()
+		public static Vector2 GetMousePosition()
 		{
 			return mouseNewPos;
 		}
@@ -123,8 +123,11 @@ namespace MonoWill
 			leftDrag = false;
 
 			MouseState mouse = Mouse.GetState();
+			
 
 			Vector2 pos = new Vector2(mouse.Position.X, mouse.Position.Y);
+			pos = Vector2.Transform(pos, Matrix.Invert(Graphic.transformationMatrix));
+
 			mouseNewPos = pos;
 			mouseOldPos = pos;
 			mouseFirstPos = pos;

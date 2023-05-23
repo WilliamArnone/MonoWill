@@ -10,41 +10,41 @@ namespace MonoWill
 	{
 		public void AddToWorld(WorldObject worldObject)
 		{
-			WillGame.world.Add(worldObject);
+			WillGame.World.Add(worldObject);
 		}
 
 		public void AddToCanvas(WorldObject worldObject)
 		{
-			WillGame.world.AddUI(worldObject);
+			WillGame.World.AddUI(worldObject);
 		}
 
 		public void RemoveFromWorld(WorldObject worldObject)
 		{
-			WillGame.world.Remove(worldObject);
+			WillGame.World.Remove(worldObject);
 		}
 		public void RemoveFromCanvas(WorldObject worldObject)
 		{
-			WillGame.world.Remove(worldObject);
+			WillGame.World.Remove(worldObject);
 		}
 
 		public T FindWorldObject<T>() where T : WorldObject
 		{
-			return WillGame.world.FindWorldObject<T>();
+			return WillGame.World.FindWorldObject<T>();
 		}
 
 		public List<T> FindWorldObjects<T>() where T : WorldObject
 		{
-			return WillGame.world.FindWorldObjects<T>();
+			return WillGame.World.FindWorldObjects<T>();
 		}
 
 		public T FindBehaviour<T>() where T : Behaviour
 		{
-			return WillGame.world.FindBehaviour<T>();
+			return WillGame.World.FindBehaviour<T>();
 		}
 
 		public List<T> FindAllBehaviours<T>() where T : Behaviour
 		{
-			return WillGame.world.FindAllBehaviours<T>();
+			return WillGame.World.FindAllBehaviours<T>();
 		}
 	}
 }

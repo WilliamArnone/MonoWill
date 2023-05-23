@@ -132,7 +132,7 @@ namespace MonoWill
 			}
 			else if(obj.worldIndex != -1)
 			{
-				WillGame.world.Remove(obj);
+				WillGame.World.Remove(obj);
 			}
 			children.Add(obj);
 		}
