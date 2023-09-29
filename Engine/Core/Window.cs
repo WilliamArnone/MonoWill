@@ -39,7 +39,7 @@ namespace MonoWill
 		/// </summary>
 		public static int Width
 		{
-			get => IsFullScreen ? Screen.Width : DeviceManager.PreferredBackBufferWidth;
+			get => DeviceManager.PreferredBackBufferWidth;
 			set
 			{
 				_width = value;
@@ -58,7 +58,7 @@ namespace MonoWill
 		/// </summary>
 		public static int Height
 		{
-			get => IsFullScreen ? Screen.Height : DeviceManager.PreferredBackBufferHeight;
+			get => DeviceManager.PreferredBackBufferHeight;
 			set
 			{
 				_height = value;
@@ -81,19 +81,26 @@ namespace MonoWill
 
 		public static void SetFullScreen(bool fullscreen)
 		{
+			GameWindow.ClientSizeChanged -= UpdateWindowSize;
+
 			if (fullscreen)
 			{
 				DeviceManager.PreferredBackBufferWidth = Screen.Width;
 				DeviceManager.PreferredBackBufferHeight = Screen.Height;
+				DeviceManager.ApplyChanges();
+				DeviceManager.IsFullScreen = true;
 			}
 			else
 			{
+				DeviceManager.IsFullScreen = false;
+				DeviceManager.ApplyChanges();
 				DeviceManager.PreferredBackBufferWidth = _width;
 				DeviceManager.PreferredBackBufferHeight = _height;
 			}
 
-			DeviceManager.IsFullScreen = fullscreen;
 			DeviceManager.ApplyChanges();
+
+			GameWindow.ClientSizeChanged += UpdateWindowSize;
 		}
 
 

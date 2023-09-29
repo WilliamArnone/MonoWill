@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace MonoWill
 	{
 		public WorldObject worldObject { get; internal set; }
 
-		public bool enabled;
+		public bool enabled = true;
 
 		#region VIRTUALS
 

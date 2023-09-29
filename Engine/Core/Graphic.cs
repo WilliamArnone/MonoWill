@@ -51,7 +51,7 @@ namespace MonoWill
 			if (UsePixelart)
 			{
 				SpriteBatch.Begin(SpriteSortMode.Deferred, 
-					BlendState.AlphaBlend, 
+					BlendState.NonPremultiplied, 
 					SamplerState.PointClamp,
 					null,
 					null,
@@ -91,15 +91,14 @@ namespace MonoWill
 			var targetAspectRatio = Width / (float)Height;
 			// figure out the largest area that fits in this resolution at the desired aspect ratio
 
-			var width = Window.Width;
+			var width = Window.Width/Width*Width;
 			var height = (int)(width / targetAspectRatio + .5f);
 
 			if (height > Window.Height)
 			{
-				height = Window.Height;
+				height = Window.Height/Height*Height;
 				// PillarBox
 				width = (int)(height * targetAspectRatio + .5f);
-
 			}
 
 			_viewport = new Viewport

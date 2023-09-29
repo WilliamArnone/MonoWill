@@ -11,23 +11,42 @@ namespace MonoWill
 {
 	public class Coroutine
 	{
-		IEnumerator routine;
+		Stack<IEnumerator> routines;
+		public bool isPlaying { get; private set; }
 
-		YieldInstruction CurrentYield => routine.Current as YieldInstruction;
+		YieldInstruction CurrentYield => routines.Peek().Current as YieldInstruction;
 
 		internal Coroutine(IEnumerator routine)
 		{
+			routines = new Stack<IEnumerator>();
 			Set(routine);
+			isPlaying = true;
 		}
 
 		internal void Set(IEnumerator routine)
 		{
-			this.routine = routine;
+			routines.Push(routine);
+			ExplorePeek();
+			isPlaying = true;
+		}
+
+		void ExplorePeek()
+		{
+			IEnumerator routine = routines.Peek();
+			while(routine != null && routine.Current is IEnumerator)
+			{
+				routine = (IEnumerator) routine.Current;
+				routines.Push(routine);
+			}
 		}
 
 		internal bool Update()
 		{
-			if(routine == null) { return true; }
+			if(routines.Count == 0)
+			{
+				isPlaying = false;
+				return true; 
+			}
 
 			bool shouldContinue = true;
 
@@ -37,18 +56,30 @@ namespace MonoWill
 				shouldContinue = !CurrentYield.IsPaused;
 			}
 
-			if (shouldContinue && !routine.MoveNext())
+			if (shouldContinue)
 			{
-				Dispose();
-				return true;
+				while (routines.Count > 0 && !routines.Peek().MoveNext())
+				{
+					routines.Pop();
+				}
+
+				if(routines.Count == 0)
+				{
+					Dispose();
+					return true;
+				}
+
+				ExplorePeek();
 			}
 
+			isPlaying = true;
 			return false;
 		}
 
 		internal void Dispose()
 		{
-			routine = null;
+			isPlaying = false;
+			routines.Clear();
 		}
 	}
 }

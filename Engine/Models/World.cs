@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MonoWill
 {
-    public abstract class World : Instantiator
+    public abstract class World : Instantiator, IDisposable
 	{
         List<WorldObject> worldObjects;
         List<WorldObject> canvasObjects;
@@ -64,7 +64,7 @@ namespace MonoWill
             {
                 if (obj.visible)
                 {
-                    obj.Draw();
+                    obj.Draw(Vector2.Zero, Vector2.One);
                 }
             }
 
@@ -72,7 +72,7 @@ namespace MonoWill
             {
                 if (obj.visible)
                 {
-                    obj.Draw();
+                    obj.Draw(Vector2.Zero, Vector2.One);
                 }
             }
         }
@@ -82,7 +82,7 @@ namespace MonoWill
 		internal void Add(WorldObject obj)
         {
 			if(obj.IsInGame) { return; }
-			if(obj.parent!=null) { obj.parent.RemoveChildren(obj); }
+			if(obj.Parent != null) { obj.Parent.RemoveChildren(obj); }
 
             obj.worldIndex = worldObjects.Count;
 			obj.IsInWorld = true;
@@ -118,7 +118,7 @@ namespace MonoWill
         internal void AddUI(WorldObject obj)
 		{
 			if (obj.IsInGame) { return; }
-			if (obj.parent != null) { obj.parent.RemoveChildren(obj); }
+			if (obj.Parent != null) { obj.Parent.RemoveChildren(obj); }
 
 			obj.worldIndex = canvasObjects.Count;
 			obj.IsInWorld = false;
@@ -278,6 +278,23 @@ namespace MonoWill
 			}
 
 			return objs;
+		}
+
+		public void Dispose()
+		{
+			for (int i = worldObjects.Count-1; i>=0 ; i--)
+			{
+				worldObjects[i].Dispose();
+			}
+
+			worldObjects.Clear();
+
+			for (int i = canvasObjects.Count-1; i>=0 ; i--)
+			{
+				canvasObjects[i].Dispose();
+			}
+
+			canvasObjects.Clear();
 		}
 
 		#endregion

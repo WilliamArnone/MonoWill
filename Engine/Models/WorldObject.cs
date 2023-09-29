@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MonoWill
 {
-    public abstract class WorldObject : Instantiator
+    public abstract class WorldObject : Instantiator, IDisposable
 	{
 		protected internal int worldIndex = -1;
 
@@ -21,30 +21,48 @@ namespace MonoWill
 
 		#region ATTRIBUTES
 
-		WorldObject _parent;
-		public WorldObject parent
-		{
-			get
-			{
-				return _parent;
-			}
-			set
-			{
-				if (_parent != null) { parent.children.Remove(this); }
-				_parent.children.Add(this);
-				_parent = value;
-			}
-		}
+		public WorldObject Parent{ get; internal set; }
 
 		public Vector2 position;
+		public Vector2 scale;
 
 		public bool enabled = true;
 		public bool visible = true;
 
+		public Vector2 realPosition
+		{
+			get
+			{
+				Vector2 _position = position;
+				WorldObject parent = Parent;
+				while (parent != null)
+				{
+					_position += parent.position;
+					parent = parent.Parent;
+				}
+				return _position;
+			}
+		}
+
+		public Vector2 lossyScale
+		{
+			get
+			{
+				Vector2 _scale = scale;
+				WorldObject parent = Parent;
+				while (parent != null)
+				{
+					_scale *= parent.scale;
+					parent = parent.Parent;
+				}
+				return _scale;
+			}
+		}
+
 		#endregion
 
 		#region BEHAVIOUR
-		
+
 		List<Behaviour> behaviours = new List<Behaviour>();
 
 		public void AddBehaviour(Behaviour behaviour)
@@ -124,24 +142,26 @@ namespace MonoWill
 		List<WorldObject> children = new List<WorldObject>();
 		public List<WorldObject> Children => new List<WorldObject>(children);
 
-		public void AddChildren(WorldObject obj)
+		public void AddChild(WorldObject obj)
 		{
-			if(obj.parent != null)
+			if(obj.Parent != null)
 			{
-				obj.parent.RemoveChildren(obj);
+				obj.Parent.RemoveChildren(obj);
 			}
 			else if(obj.worldIndex != -1)
 			{
-				WillGame.World.Remove(obj);
+				Game.World.Remove(obj);
 			}
 			children.Add(obj);
+			obj.Parent = this;
 		}
 
 		public void RemoveChildren(WorldObject obj) 
 		{
-			if(obj.parent != this) { return; }
+			if(obj.Parent != this) { return; }
 
 			children.Remove(obj);
+			obj.Parent = null;
 		}
 
 		#endregion
@@ -149,21 +169,10 @@ namespace MonoWill
 		#region COROUTINES
 
 		List<Coroutine> activeCoroutines = new List<Coroutine>();
-		List<Coroutine> sleepCoroutines = new List<Coroutine>();
 
 		public Coroutine StartCoroutine(IEnumerator routine)
 		{
-			Coroutine coroutine;
-			if (sleepCoroutines.Count > 0)
-			{
-				coroutine = sleepCoroutines[0];
-				sleepCoroutines.RemoveAt(0);
-				coroutine.Set(routine);
-			}
-			else
-			{
-				coroutine = new Coroutine(routine);
-			}
+			Coroutine coroutine = new Coroutine(routine);
 			activeCoroutines.Add(coroutine);
 			return coroutine;
 		}
@@ -172,7 +181,6 @@ namespace MonoWill
 		{
 			coroutine.Dispose();
 			activeCoroutines.Remove(coroutine);
-			sleepCoroutines.Add(coroutine);
 		}
 
 		public void StopAllCoroutines()
@@ -180,7 +188,6 @@ namespace MonoWill
 			foreach (var coroutine in activeCoroutines)
 				coroutine.Dispose();
 
-			sleepCoroutines.AddRange(activeCoroutines);
 			activeCoroutines.Clear();
 		}
 
@@ -193,7 +200,6 @@ namespace MonoWill
 				if (activeRoutine.Update())
 				{
 					activeCoroutines.RemoveAt(i);
-					sleepCoroutines.Add(activeRoutine);
 				}
 			}
 
@@ -220,11 +226,23 @@ namespace MonoWill
 					child.Update();
 		}
 
-		public virtual void Draw()
+		public virtual void Draw(Vector2 parentPosition, Vector2 parentScale)
 		{
+			parentPosition += position;
+			parentScale *= scale;
+
 			foreach (var child in children)
 				if(child.visible)
-					child.Draw();
+					child.Draw(parentPosition, parentScale);
+		}
+
+		public virtual void Dispose()
+		{
+			foreach (var child in children)
+			{
+				child.Dispose();
+			}
+			children.Clear();
 		}
 
 		#endregion

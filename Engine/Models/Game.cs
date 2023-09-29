@@ -8,15 +8,17 @@ using System.Runtime.CompilerServices;
 
 namespace MonoWill
 {
-    public class WillGame : Game
-    {
+    public class Game : Microsoft.Xna.Framework.Game
+	{
         internal static World World { get; private set; }
+        public static Game Instance { get; private set; }
 
         static readonly Queue<World> worldQueue = new();
 		readonly GraphicsDeviceManager _graphics;
 
-        public WillGame(World world)
+        public Game(World world)
         {
+            Instance = this;
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -24,13 +26,27 @@ namespace MonoWill
             World = world;
         }
 
+        World resetRequest = null;
+        bool preserveRequest = false;
+
         public static void LoadNewWorld(World world, bool preserveCurrentWorld)
+        {
+            Instance.resetRequest = world;
+            Instance.preserveRequest = preserveCurrentWorld;
+        }
+
+
+		static void _LoadNewWorld(World world, bool preserveCurrentWorld)
         {
             if (preserveCurrentWorld)
             {
-                worldQueue.Enqueue(WillGame.World);
+                worldQueue.Enqueue(World);
             }
-            WillGame.World = world;
+            else
+            {
+                World.Dispose();
+            }
+			World = world;
             world.OnCreation();
         }
 
@@ -64,8 +80,11 @@ namespace MonoWill
 
 		protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-                Exit();
+            if (resetRequest != null)
+            {
+                _LoadNewWorld(resetRequest, preserveRequest);
+                resetRequest = null;
+            }
 
             Time.Update(gameTime);
             Input.Update();

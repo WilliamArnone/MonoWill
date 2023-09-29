@@ -17,7 +17,7 @@ namespace MonoWill
 
 		public override void Update()
 		{
-			delayRemaining -= Time.TimeDelta;
+			delayRemaining -= Time.Delta;
 			isPaused = delayRemaining > 0;
 		}
 	}

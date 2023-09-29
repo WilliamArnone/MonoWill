@@ -70,7 +70,7 @@ namespace MonoWill
 
 		#region MOUSE
 
-		const float clickTimeBetweenInteraction = .10f;
+		const float clickTimeBetweenInteraction = .20f;
 
 		static MouseState _newMouse;
 		static MouseState _oldMouse;
